@@ -55,15 +55,19 @@ event_list = [
 
 
 def get_hours_between_events(data_list: list[dict],
-                             start_date: str = None,
-                             end_date: str = None) -> int:
-    if start_date:
-        start_date_dt = dt.datetime.strptime(start_date, '%Y-%m-%d')
+                             start_date: dt.date,
+                             end_date: dt.date = None) -> int:
 
-    if end_date:
-        end_date_dt = dt.datetime.strptime(end_date, '%Y-%m-%d')
-    else:
-        end_date_dt = start_date_dt
+    """
+    :param data_list: list of dictionaries with data about events
+    :param start_date: string date in format "YYYY-MM-DD"
+    :param end_date: string date in format "YYYY-MM-DD", Optional
+    ---------------------------------------------------------
+    :return: integer, count of hours between events
+    """
+
+    if not end_date:
+        end_date = start_date
 
     seconds_counter = 0
     for i in range(0, len(data_list), 2):
@@ -73,7 +77,7 @@ def get_hours_between_events(data_list: list[dict],
 
         # Проверяем, что start_time не может быть раньше даты начала
         # И  не может быть позже даты конца
-        if start_date_dt.date() <= start_time_dt.date() <= end_date_dt.date():
+        if start_date <= start_time_dt.date() <= end_date:
             time_difference = end_time_dt - start_time_dt
             seconds_counter += time_difference.total_seconds()
 
@@ -83,16 +87,31 @@ def get_hours_between_events(data_list: list[dict],
 
 def get_hours_in_date_range(data_list: list[dict],
                             start_date: str,
-                            end_date: str,) -> int:
+                            end_date: str = None) -> int:
+    """
+
+    :param data_list: list of dictionaries with data about events
+    :param start_date: string date in format "YYYY-MM-DD"
+    :param end_date: string date in format "YYYY-MM-DD", Optional
+    :return: integer, count of hours between events
+    """
+
+    start_date_dt = dt.datetime.strptime(start_date, "%Y-%m-%d")
+    if end_date:
+        end_date_dt = dt.datetime.strptime(end_date, "%Y-%m-%d")
+    else:
+        end_date_dt = start_date_dt
+
+
     return get_hours_between_events(
         data_list=data_list,
-        start_date=start_date,
-        end_date=end_date
+        start_date=start_date_dt.date(),
+        end_date=end_date_dt.date()
     )
 
 
 def get_hours_today(data_list: list[dict]) -> int:
-    current_date = str(dt.date.today())
+    current_date = dt.date.today()
     return get_hours_between_events(
         data_list=data_list,
         start_date=current_date
@@ -107,8 +126,8 @@ def get_hours_this_week(data_list: list[dict] = None) -> int:
     end_date = start_date + dt.timedelta(days=6)
     return get_hours_between_events(
         data_list=data_list,
-        start_date=str(start_date),
-        end_date=str(end_date)
+        start_date=start_date,
+        end_date=end_date
     )
 
 
@@ -124,8 +143,8 @@ def get_hours_this_month(data_list: list[dict]) -> int:
     last_day = get_last_day_of_month(current_date)
     return get_hours_between_events(
         data_list=data_list,
-        start_date=str(first_day),
-        end_date=str(last_day)
+        start_date=first_day,
+        end_date=last_day
     )
 
 
@@ -136,14 +155,8 @@ def get_hours_this_year(data_list: list[dict]) -> int:
 
     return get_hours_between_events(
         data_list=data_list,
-        start_date=str(first_day.date()),
-        end_date=str(last_day.date())
+        start_date=first_day.date(),
+        end_date=last_day.date()
     )
 
-
-print(
-    get_hours_this_year(
-        data_list=event_list
-    )
-)
 
